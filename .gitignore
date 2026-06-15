@@ -1,0 +1,15 @@
+# Generated figures
+*.png
+*.pdf
+*.log
+*.aux
+*.out
+
+# Build / output directories
+output/
+
+# Temporary / error files
+compile_err.txt
+
+# Tool-specific
+.reasonix/
