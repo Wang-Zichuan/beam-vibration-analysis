@@ -1,0 +1,466 @@
+% ===========================================================================
+%  Beamer 学术报告幻灯片
+%  含集中参数 Euler-Bernoulli 梁自由振动分析 — TMM vs FEM
+%  作者: 王子传, 吕天翔, 方思哲
+%  单位: 天津大学 机械工程学院
+%  编译: xelatex slides.tex
+% ===========================================================================
+\documentclass[12pt,aspectratio=169]{ctexbeamer}
+
+% ---- 主题 ----
+\usetheme{Madrid}
+\usecolortheme{default}
+\usefonttheme{professionalfonts}
+
+% ---- 包 ----
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% ---- 自定义 ----
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{itemize items}[circle]
+
+\title[含集中参数梁的 TMM-FEM 对比]{\textbf{基于传递矩阵法与有限元法的\\含集中参数 Euler-Bernoulli 梁自由振动分析}}
+\author[王子传, 吕天翔, 方思哲]{王子传\quad 吕天翔\quad 方思哲}
+\institute[天津大学]{天津大学\quad 机械工程学院}
+\date{}
+
+\begin{document}
+
+% ===========================================================================
+% 封面
+% ===========================================================================
+\begin{frame}
+  \maketitle
+\end{frame}
+
+% ===========================================================================
+% 目录
+% ===========================================================================
+\begin{frame}{报告提纲}
+  \begin{columns}[T]
+    \column{0.50\textwidth}
+      \textbf{\large 1.} \quad 研究背景与问题 \\
+      \textbf{\large 2.} \quad 力学模型 \\
+      \textbf{\large 3.} \quad TMM 解析解方法 \\
+      \textbf{\large 4.} \quad FEM 数值解方法
+    \column{0.50\textwidth}
+      \textbf{\large 5.} \quad 频率对比结果 \\
+      \textbf{\large 6.} \quad 振型对比结果 \\
+      \textbf{\large 7.} \quad 响应对比结果 \\
+      \textbf{\large 8.} \quad 总结与结论
+  \end{columns}
+\end{frame}
+
+% ===========================================================================
+% Section 1: 背景
+% ===========================================================================
+\section{研究背景与问题}
+
+\begin{frame}{研究背景}
+  \begin{itemize}
+    \item \textbf{工程需求}：梁结构广泛用于航空、土木、机械装备，
+          常附有集中质量、铰支座、弹性支承等集中参数
+    \item \textbf{理论挑战}：集中参数导致挠度函数出现跳跃或约束，
+          经典分离变量法不再适用
+    \item \textbf{已有方法}：
+      \begin{itemize}
+        \item 传递矩阵法（TMM）：Pestel \& Leckie (1963), Banerjee (2001, 2019)
+        \item 有限元法（FEM）：Zienkiewicz, Bathe, Hughes
+      \end{itemize}
+    \item \textbf{研究空白}：同时含三种集中参数（铰支 + 质量 + 弹簧）
+          的组合问题缺乏系统性 TMM-FEM 精度对比
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{研究目标}
+  \begin{block}{核心问题}
+    针对含铰支座（B）、集中质量（C）、弹性支承（D）的 Euler-Bernoulli 梁自由振动，
+    分别采用 TMM 和 FEM 求解，并进行系统精度对比验证。
+  \end{block}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+      \textbf{TMM（解析解）}
+      \begin{itemize}
+        \item 分段解析通解
+        \item 跳跃矩阵处理集中参数
+        \item 超越方程 $\det\mathbf{A}(\beta)=0$
+        \item 3 个未知数
+      \end{itemize}
+    \column{0.48\textwidth}
+      \textbf{FEM（数值解）}
+      \begin{itemize}
+        \item 40 个 Hermite 梁单元
+        \item 直接刚度法组装
+        \item 广义特征值问题 $\mathbf{K}\bm{\phi}=\omega^2\mathbf{M}\bm{\phi}$
+        \item 81 个主动自由度
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+% ===========================================================================
+% Section 2: 力学模型
+% ===========================================================================
+\section{力学模型}
+
+\begin{frame}{力学模型}
+  \begin{center}
+    \includegraphics[width=0.82\textwidth]{assets/image-20260616001638017.png}
+  \end{center}
+
+  \begin{columns}[T]
+    \column{0.50\textwidth}
+      \begin{itemize}
+        \item A, E: 自由端
+        \item B: 铰支座（$w=0$）
+        \item C: 集中质量 $m$
+        \item D: 弹簧 $k$
+      \end{itemize}
+    \column{0.50\textwidth}
+      \[
+      \begin{aligned}
+      L &= 4l = 4\;\text{m} \\
+      EJ &= 1.749\times 10^6\;\text{N·m}^2 \\
+      \mu &= 78\;\text{kg/m} \\
+      m &= 62.4\;\text{kg} \\
+      k &= 5.25\times 10^7\;\text{N/m}
+      \end{aligned}
+      \]
+  \end{columns}
+\end{frame}
+
+\begin{frame}{控制方程与连接条件}
+  \begin{block}{梁段内 Euler-Bernoulli 方程}
+    \[
+    EJ\frac{\partial^4 w}{\partial x^4} + \rho S\frac{\partial^2 w}{\partial t^2} = 0
+    \]
+  \end{block}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+      \textbf{自由端 A, E}
+      \begin{itemize}
+        \item $w_{xx}=0$（弯矩为零）
+        \item $w_{xxx}=0$（剪力为零）
+      \end{itemize}
+      \textbf{铰支座 B}
+      \begin{itemize}
+        \item $w=0$
+        \item 转角/弯矩连续
+        \item 剪力可跳跃
+      \end{itemize}
+    \column{0.48\textwidth}
+      \textbf{集中质量 C}
+      \begin{itemize}
+        \item $w, w_x, w_{xx}$ 连续
+        \item $EJ\Delta w_{xxx} + m w_{tt} = 0$
+      \end{itemize}
+      \textbf{弹性支承 D}
+      \begin{itemize}
+        \item $w, w_x, w_{xx}$ 连续
+        \item $EJ\Delta w_{xxx} + k w = 0$
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+% ===========================================================================
+% Section 3: TMM
+% ===========================================================================
+\section{TMM 解析解}
+
+\begin{frame}{TMM: 传递矩阵法框架}
+  \begin{enumerate}
+    \item \textbf{分离变量}: $w(x,t)=\phi(x)q(t)$ $\Rightarrow$
+          $\phi^{(4)}-\lambda^4\phi=0$, \; $\omega=\lambda^2\sqrt{EJ/\mu}$
+    \item \textbf{无量纲化}: $\xi=x/l$, $Y''''-\beta^4Y=0$, $\beta=\lambda l$
+    \item \textbf{状态向量}: $\mathbf{z}(\xi)=[Y, Y', Y'', Y''']^T$
+    \item \textbf{梁段传递}: $\mathbf{z}(\xi+s)=\mathbf{P}(s,\beta)\mathbf{z}(\xi)$
+    \item \textbf{跳跃矩阵}: 集中质量 $\mathbf{J}_m$, 弹簧 $\mathbf{J}_k$
+    \item \textbf{铰支座}: $Y(1)=0$ + 未知反力 $R$
+  \end{enumerate}
+
+  \begin{block}{频率特征方程}
+    \[
+    \mathbf{A}(\beta)\cdot[a,b,R]^T=\mathbf{0}
+    \quad\Longrightarrow\quad
+    \boxed{\det\mathbf{A}(\beta)=0}
+    \]
+  \end{block}
+\end{frame}
+
+\begin{frame}{TMM: 跳跃矩阵}
+  \begin{columns}[T]
+    \column{0.50\textwidth}
+      \textbf{集中质量} $\mathbf{J}_m$（$\xi=2$）
+      \[
+      \mathbf{J}_m = \begin{bmatrix}
+      1 & 0 & 0 & 0 \\
+      0 & 1 & 0 & 0 \\
+      0 & 0 & 1 & 0 \\
+      \alpha\beta^4 & 0 & 0 & 1
+      \end{bmatrix}
+      \]
+      \vspace{-0.5em}
+      \[
+      \alpha = \frac{m}{\rho S l} = 0.8
+      \]
+    \column{0.50\textwidth}
+      \textbf{弹簧} $\mathbf{J}_k$（$\xi=3$）
+      \[
+      \mathbf{J}_k = \begin{bmatrix}
+      1 & 0 & 0 & 0 \\
+      0 & 1 & 0 & 0 \\
+      0 & 0 & 1 & 0 \\
+      -\kappa & 0 & 0 & 1
+      \end{bmatrix}
+      \]
+      \vspace{-0.5em}
+      \[
+      \kappa = \frac{kl^3}{EJ} = 30.0
+      \]
+  \end{columns}
+
+  \vspace{1em}
+  \begin{center}
+    \small 总传递: $\mathbf{T}(\beta)=\mathbf{P}(1)\mathbf{J}_k\mathbf{P}(1)\mathbf{J}_m\mathbf{P}(1)$
+  \end{center}
+\end{frame}
+
+% ===========================================================================
+% Section 4: FEM
+% ===========================================================================
+\section{FEM 数值解}
+
+\begin{frame}{FEM: 离散化方案}
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+      \textbf{两节点 Hermite 梁单元}
+      \begin{itemize}
+        \item 每节点 2 DOF: $(w, \theta)$
+        \item 单元矩阵: $\mathbf{K}^e$ (刚度), $\mathbf{M}^e$ (质量)
+        \item Hermite 三次插值 ($C^1$ 连续)
+      \end{itemize}
+
+      \textbf{网格参数}
+      \begin{itemize}
+        \item 4 段 × 10 单元/段 = 40 单元
+        \item 41 节点, 82 DOF (原始)
+        \item 消去铰支 $w_B$ → \textbf{81 主动 DOF}
+      \end{itemize}
+    \column{0.45\textwidth}
+      \centering
+      \includegraphics[width=0.95\textwidth]{assets/image-20260616001638017.png}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{FEM: 特征值求解}
+  \begin{block}{广义特征值问题}
+    \[
+    \mathbf{K}\bm{\phi} = \omega^2 \mathbf{M}\bm{\phi}
+    \]
+  \end{block}
+
+  \textbf{求解步骤（LAPACK DSYGV 等价算法）}:
+  \begin{enumerate}
+    \item Cholesky 分解: $\mathbf{M} = \mathbf{L}\mathbf{L}^T$
+    \item 构造标准问题: $\mathbf{A} = \mathbf{L}^{-1}\mathbf{K}\mathbf{L}^{-T}$
+    \item 求解: $\mathbf{A}\mathbf{y} = \lambda\mathbf{y}$
+    \item 回代: $\bm{\phi} = \mathbf{L}^{-T}\mathbf{y}$, $\omega = \sqrt{\lambda}$
+  \end{enumerate}
+
+  \begin{itemize}
+    \item 集中质量: $M_{w_C,w_C} \leftarrow M_{w_C,w_C} + m$
+    \item 弹簧: $K_{w_D,w_D} \leftarrow K_{w_D,w_D} + k$
+  \end{itemize}
+\end{frame}
+
+% ===========================================================================
+% Section 5: 频率对比
+% ===========================================================================
+\section{频率对比}
+
+\begin{frame}{频率对比: TMM vs FEM}
+  \centering
+  \includegraphics[height=0.72\textheight]{fig_comp_A_frequency.png}
+
+  \vspace{0.3em}
+  \begin{center}
+    \small 前 6 阶频率最大相对误差: \textbf{0.0018\%}（Mode 6）
+  \end{center}
+\end{frame}
+
+\begin{frame}{频率对比: 数值表}
+  \begin{table}
+    \centering
+    \caption{前六阶固有频率对比}
+    \begin{tabular}{cccccc}
+      \toprule
+      $n$ & $f_n^{\text{TMM}}$ [Hz] & $f_n^{\text{FEM}}$ [Hz] &
+      $\Delta f$ [Hz] & 相对误差 & $\beta_n$ \\
+      \midrule
+      1 & 29.8140 & 29.8140 & $<10^{-4}$ & $<0.0001\%$ & 1.11843 \\
+      2 & 49.1045 & 49.1045 & $<10^{-4}$ & $<0.0001\%$ & 1.43535 \\
+      3 & 75.9754 & 75.9755 & $1\times10^{-4}$ & 0.0001\% & 1.78539 \\
+      4 & 177.1404 & 177.1411 & $7\times10^{-4}$ & 0.0004\% & 2.72619 \\
+      5 & 292.8670 & 292.8701 & $3\times10^{-3}$ & 0.0010\% & 3.50536 \\
+      6 & 398.0123 & 398.0193 & $7\times10^{-3}$ & 0.0018\% & 4.08645 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \begin{center}
+    \small \textbf{40 单元 FEM 已充分收敛，与 TMM 解析解高度吻合}
+  \end{center}
+\end{frame}
+
+\begin{frame}{$\beta_n$ 相关性分析}
+  \centering
+  \includegraphics[height=0.68\textheight]{fig_comp_G_beta_correlation.png}
+
+  \vspace{0.3em}
+  \begin{center}
+    斜率 = 1.000002 \quad $R^2 > 0.99999999$ \quad 数据点完美落在 $y=x$ 线上
+  \end{center}
+\end{frame}
+
+% ===========================================================================
+% Section 6: 振型对比
+% ===========================================================================
+\section{振型对比}
+
+\begin{frame}{振型对比: TMM vs FEM}
+  \centering
+  \includegraphics[height=0.68\textheight]{fig_comp_B_modeshapes.png}
+
+  \vspace{0.3em}
+  \begin{center}
+    \small TMM（实线，蓝色）与 FEM（虚线，橙色） — 肉眼无法分辨差异
+  \end{center}
+\end{frame}
+
+\begin{frame}{振型误差分析}
+  \centering
+  \includegraphics[height=0.68\textheight]{fig_comp_C_modeshape_error.png}
+
+  \vspace{0.3em}
+  \begin{center}
+    \small $\|\Delta\phi_n\|_\infty$: Mode 1 $\sim 10^{-8}$, Mode 6 $\sim 5\times 10^{-6}$
+  \end{center}
+\end{frame}
+
+% ===========================================================================
+% Section 7: 响应对比
+% ===========================================================================
+\section{响应对比}
+
+\begin{frame}{C 点动力学响应对比}
+  \centering
+  \includegraphics[height=0.70\textheight]{fig_comp_D_response_C.png}
+
+  \vspace{0.3em}
+  \begin{center}
+    \small 位移 $\sim 0.05$ mm, 速度 $v_0=0.1$ m/s, 加速度 $\sim 12$ m/s$^2$ \\
+    TMM 与 FEM 两条曲线完全重合
+  \end{center}
+\end{frame}
+
+\begin{frame}{响应误差与模态贡献}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      \centering
+      \includegraphics[height=0.60\textheight]{fig_comp_E_response_error.png}
+
+      \vspace{-0.5em}
+      {\small 位移累积误差 $\sim 0.02\;\mu\text{m}$}
+    \column{0.48\textwidth}
+      \centering
+      \includegraphics[height=0.55\textheight]{fig_comp_F_summary_panel.png}
+    \end{columns}
+\end{frame}
+
+% ===========================================================================
+% Section 8: 讨论
+% ===========================================================================
+\section{讨论}
+
+\begin{frame}{方法学对比}
+  \begin{table}
+    \centering
+    \caption{TMM 与 FEM 多维对比}
+    \begin{tabular}{p{3cm}cc}
+      \toprule
+      特性 & TMM（解析解） & FEM（40 单元）\\
+      \midrule
+      频率精度 & 精确 & $<0.002\%$ \\
+      振型精度 & 分段解析 & $\|\Delta\phi\|_\infty < 5\times10^{-6}$ \\
+      响应精度 & 模态叠加 & $\|\Delta w\|_\infty < 0.02\;\mu\text{m}$ \\
+      \textbf{正交性} & $\sim 10^{-6}$（数值积分） & $\mathbf{10^{-15}}$（机器精度）\\
+      计算时间 & $\sim 0.3$ s & $\sim 0.05$ s \\
+      可扩展性 & 需重推导 & 通用组装 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+\begin{frame}{误差来源讨论}
+  \begin{itemize}
+    \item \textbf{FEM 离散化误差}: 随模态阶次递增（高阶模态波长短，需更多单元捕捉）
+    \item \textbf{正交性差异}: FEM 天然的对称正定性保证机器精度正交性；
+          TMM 依赖数值积分，精度受积分网格限制
+    \item \textbf{集中参数影响}:
+      \begin{itemize}
+        \item 质量比 $\alpha=0.8$: 第 1、3 阶模态集中质量参与度最高（17.5\%, 24.2\%）
+        \item 刚度比 $\kappa=30.0$: 低阶模态受弹簧约束显著，高阶模态约束减弱
+      \end{itemize}
+    \item \textbf{网格收敛性}: 40 单元已充分收敛，加密网格改善微乎其微
+  \end{itemize}
+\end{frame}
+
+% ===========================================================================
+% 结论
+% ===========================================================================
+\section{结论}
+
+\begin{frame}{主要结论}
+  \begin{enumerate}
+    \item \textbf{两种方法高度一致}: 前 6 阶频率误差 $<0.002\%$，
+          振型误差 $<5\times 10^{-6}$，响应误差 $<0.02\;\mu\text{m}$
+
+    \item \textbf{TMM 提供解析基准}: 适合规则梁、少量集中参数问题的精确求解
+
+    \item \textbf{FEM 具备工程优势}: 通用性强，正交性达机器精度（$10^{-15}$），
+          易于扩展至变截面/非均匀材料
+
+    \item \textbf{40 单元网格已收敛}: $\beta_n$ 相关性 $R^2 > 0.99999999$
+
+    \item \textbf{互相验证}: 两种独立方法在所有维度上高度吻合，
+          为含集中参数连续体振动分析提供了完整的求解框架与精度基准
+  \end{enumerate}
+\end{frame}
+
+% ===========================================================================
+% 致谢
+% ===========================================================================
+\begin{frame}[plain]
+  \centering
+  \vspace{2cm}
+
+  {\Huge \textbf{谢谢！}}
+
+  \vspace{1.5cm}
+
+  {\Large 欢迎提问与讨论}
+
+  \vspace{2cm}
+
+  {\normalsize
+  王子传\quad 吕天翔\quad 方思哲\\
+  天津大学\quad 机械工程学院}
+\end{frame}
+
+\end{document}
